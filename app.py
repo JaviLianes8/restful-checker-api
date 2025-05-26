@@ -34,5 +34,7 @@ def analyze():
         return {"error": str(e)}, 500
 
 if __name__ == '__main__':
-    print(">>> Flask server starting")
-    app.run()
+    from os import getenv
+    port = int(getenv("PORT", 10000))
+    print(f">>> Flask server starting on port {port}")
+    app.run(host="0.0.0.0", port=port)
