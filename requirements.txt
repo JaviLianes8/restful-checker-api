@@ -1,3 +1,4 @@
 flask
 restful-checker
 waitress
+flask-cors
