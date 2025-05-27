@@ -1,10 +1,13 @@
 import sys
 import traceback
-from flask import Flask, request, Response
 import tempfile
+
 from restful_checker.core.analyzer import analyze_api
+from flask_cors import CORS
+from flask import Flask, request, Response
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
