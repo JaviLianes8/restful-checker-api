@@ -44,7 +44,7 @@ services:
     startCommand: python app.py
 
 📚 Related Projects
-restful-checker (CLI tool): Python package that performs the actual validation
+restful-checker (CLI tool): Python package that performs the actual validation https://github.com/JaviLianes8/restful-checker
 restful-checker-ui (soon): Frontend web interface (in progress)
 
 🛠 Requirements
