@@ -12,7 +12,7 @@ CORS(app)
 @app.route('/analyze', methods=['POST'])
 def analyze():
     print("[DEBUG] /analyze endpoint HIT")
-    print(f"[DEBUG] Python path: {sys.executable}")
+    print(f"[DEBUG] Python path:  {sys.executable}")
     try:
         if not request.data:
             print("[DEBUG] No data received")
