@@ -42,9 +42,9 @@ services:
     plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: python app.py
+
 📚 Related Projects
 restful-checker (CLI tool): Python package that performs the actual validation
-
 restful-checker-ui (soon): Frontend web interface (in progress)
 
 🛠 Requirements
