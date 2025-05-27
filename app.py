@@ -16,7 +16,7 @@ def analyze():
     try:
         if not request.data:
             print("[DEBUG] No data received")
-            return {"error": "No input provided"}, 400
+            return {"error": " No input provided"}, 400
 
         with tempfile.NamedTemporaryFile(delete=False, mode='w+', suffix='.json') as f:
             f.write(request.data.decode('utf-8'))
