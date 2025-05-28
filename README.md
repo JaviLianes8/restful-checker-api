@@ -45,7 +45,7 @@ services:
 
 📚 Related Projects
 restful-checker (CLI tool): Python package that performs the actual validation https://github.com/JaviLianes8/restful-checker
-restful-checker-ui (soon): Frontend web interface (in progress)
+restful-checker-ui (soon): Frontend web interface https://github.com/AlejandroSenior/restful-checker-website
 
 🛠 Requirements
 Python 3.8+
