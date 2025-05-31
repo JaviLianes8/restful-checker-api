@@ -16,10 +16,15 @@ app = Flask(__name__)
 # 🔒 Limit max request size to 2 MB
 app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
 
-# 🔒 Allow CORS only from the official frontend
-CORS(app, resources={r"/analyze": {"origins": "https://restful-checker-website.vercel.app"}})
+# 🔒 Allow CORS from both Vercel and local development environments
+CORS(app, resources={r"/analyze": {"origins": [
+    "https://restful-checker-website.vercel.app",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://192.168.1.*"
+]}})
 
-# 🔒 Rate limit per IP to prevent abuse
+# 🔒 Rate limiting to prevent abuse
 limiter = Limiter(get_remote_address, app=app, default_limits=["5 per minute", "100 per day"])
 
 @app.route('/analyze', methods=['POST'])
@@ -63,7 +68,7 @@ def analyze():
         return {"error": str(e)}, 500
 
 if __name__ == '__main__':
-    # 🔧 Load port from env variable
+    # 🔧 Load port from environment variable or default to 53127
     port = int(os.getenv("PORT", 53127))
     print(f">>> Flask server starting on port {port}")
     app.run(host="0.0.0.0", port=port)
