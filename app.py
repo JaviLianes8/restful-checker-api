@@ -2,7 +2,7 @@ import sys
 import traceback
 import tempfile
 
-from restful_checker.core.analyzer import analyze_api
+from restful_checker.engine.analyzer import analyze_api
 from flask_cors import CORS
 from flask import Flask, request, Response
 
@@ -15,7 +15,7 @@ def analyze():
     print(f"[DEBUG] Python path: {sys.executable}")
     try:
         if not request.data:
-            print("[DEBUG] No data received ")
+            print("[DEBUG] No data received")
             return {"error": "No input provided"}, 400
 
         with tempfile.NamedTemporaryFile(delete=False, mode='w+', suffix='.json') as f:
