@@ -2,4 +2,4 @@ flask>=2.3
 flask-cors>=4.0
 flask-limiter>=3.5
 waitress>=2.1
-restful-checker>=0.1.31
+restful-checker>=0.1.33
