@@ -15,7 +15,7 @@ def analyze():
     print(f"[DEBUG] Python path: {sys.executable}")
     try:
         if not request.data:
-            print("[DEBUG] No data received")
+            print("[DEBUG] No data received ")
             return {"error": "No input provided"}, 400
 
         with tempfile.NamedTemporaryFile(delete=False, mode='w+', suffix='.json') as f:
