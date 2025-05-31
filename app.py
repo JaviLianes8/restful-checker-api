@@ -8,6 +8,7 @@ from flask import Flask, request, Response
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from waitress import serve
 
 from restful_checker.engine.analyzer import analyze_api
 
@@ -68,7 +69,6 @@ def analyze():
         return {"error": str(e)}, 500
 
 if __name__ == '__main__':
-    # 🔧 Load port from environment variable or default to 53127
     port = int(os.getenv("PORT", 53127))
     print(f">>> Flask server starting on port {port}")
-    app.run(host="0.0.0.0", port=port)
+    serve(app, host='0.0.0.0', port=port)
