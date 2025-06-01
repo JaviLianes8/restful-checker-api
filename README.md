@@ -67,4 +67,10 @@ MIT – Free to use, modify, and deploy.
   <img src="https://github.com/JaviLianes8.png" width="100" alt="JaviLianes8">
 </a>
 
-<p align="right">(<a href="#readme-top">volver arriba</a>)</p>
+## ☕ Buy Me a Coffee
+
+If you find this tool useful and want to support its development, you can buy me a coffee:
+
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/jlianesglrs)
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
