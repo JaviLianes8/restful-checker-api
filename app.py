@@ -44,27 +44,26 @@ def analyze():
             return {"error": "Invalid JSON"}, 400
 
         # ✅ Save JSON to a temporary file
-        with tempfile.NamedTemporaryFile(delete=False, mode='w+', suffix='.json') as f:
+        with tempfile.NamedTemporaryFile(delete=False, mode='w+', suffix='.json', encoding='utf-8') as f:
             f.write(request.data.decode('utf-8'))
             f.flush()
             input_path = f.name
 
-        # ✅ Run the RESTful analysis
-        result_path = analyze_api(input_path)
+        # ✅ Run the RESTful analysis (only HTML)
+        result = analyze_api(input_path, output_dir="html")
 
         # ✅ Read the generated HTML report
-        with open(result_path, 'r', encoding='utf-8') as f:
+        with open(result["html_path"], 'r', encoding='utf-8') as f:
             html = f.read()
 
         # ✅ Clean up temporary files
         os.remove(input_path)
-        os.remove(result_path)
+        os.remove(result["html_path"])
 
         # ✅ Return the HTML content as a response
         return Response(html, mimetype='text/html')
 
     except Exception as e:
-        # ❌ Log unexpected errors
         traceback.print_exc()
         return {"error": str(e)}, 500
 
