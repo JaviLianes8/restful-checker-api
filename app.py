@@ -32,7 +32,7 @@ def analyze():
 
         if isinstance(body, dict) and "url" in body:
             url = body["url"]
-            sys.argv = ["restful-checker", url, "--output-format", "both"]
+            sys.argv = ["restful-checker", url, "--output-format", "html"]
             main()  # Running the main function from restful-checker
 
             # Assuming that the file is generated at a default location and read it
@@ -41,7 +41,7 @@ def analyze():
 
         else:
             file_data = request.data.decode('utf-8')
-            sys.argv = ["restful-checker", "--output-format", "both", "--output-folder", "html"]
+            sys.argv = ["restful-checker", "--output-format", "html", "--output-folder", "html"]
             with tempfile.NamedTemporaryFile(delete=False, mode='w+', suffix='.json', encoding='utf-8') as tmp_file:
                 tmp_file.write(file_data)
                 tmp_file.flush()
