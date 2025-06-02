@@ -3,6 +3,8 @@ import shutil
 import sys
 import traceback
 import uuid
+import tempfile
+import multiprocessing
 
 from flask import Flask, request, Response
 from flask_cors import CORS
@@ -10,14 +12,12 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from waitress import serve
 from datetime import datetime
-import tempfile
 from restful_checker.main import main
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
 
 CORS(app)
-
 limiter = Limiter(get_remote_address, app=app, default_limits=["5 per minute", "100 per day"])
 
 @app.route('/analyze', methods=['POST', 'OPTIONS'])
@@ -50,8 +50,18 @@ def analyze():
                 tmp_file_path = tmp_file.name
                 input_arg = tmp_file_path
 
-        sys.argv = ["restful-checker", input_arg, "--output-format", "html", "--output-folder", output_dir]
-        main()
+        def run_checker():
+            sys.argv = ["restful-checker", input_arg, "--output-format", "html", "--output-folder", output_dir]
+            main()
+
+        p = multiprocessing.Process(target=run_checker)
+        p.start()
+        p.join(timeout=10)
+
+        if p.is_alive():
+            p.terminate()
+            p.join()
+            return {"error": "Timeout: analysis took too long"}, 504
 
         html_path = os.path.join(output_dir, "rest_report.html")
         with open(html_path, "r", encoding="utf-8") as file:
