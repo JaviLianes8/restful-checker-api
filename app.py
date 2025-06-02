@@ -46,6 +46,8 @@ def analyze():
         if not request.data:
             return {"error": "No input provided"}, 400
 
+        json_input = None
+
         body = request.get_json(silent=True)
         if isinstance(body, dict) and "url" in body:
             try:
@@ -55,12 +57,11 @@ def analyze():
             except Exception as e:
                 return {"error": f"Failed to fetch URL: {str(e)}"}, 400
         else:
-            json_input = request.data.decode('utf-8')
-
-        try:
-            json.loads(json_input)
-        except json.JSONDecodeError:
-            return {"error": "Invalid JSON"}, 400
+            try:
+                parsed = json.loads(request.data.decode('utf-8'))
+                json_input = json.dumps(parsed)
+            except json.JSONDecodeError:
+                return {"error": "Invalid JSON"}, 400
 
         with tempfile.NamedTemporaryFile(delete=False, mode='w+', suffix='.json', encoding='utf-8') as f:
             f.write(json_input)
