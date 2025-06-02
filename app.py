@@ -1,4 +1,3 @@
-import os
 import sys
 import traceback
 from flask import Flask, request, Response
@@ -33,7 +32,11 @@ def analyze():
         if isinstance(body, dict) and "url" in body:
             url = body["url"]
             sys.argv = ["restful-checker", url, "--output-format", "both"]
-            html_content = main()
+            main()  # Running the main function from restful-checker
+
+            # Assuming that the file is generated at a default location and read it
+            with open("html/rest_report.html", "r", encoding="utf-8") as file:
+                html_content = file.read()
 
         else:
             file_data = request.data.decode('utf-8')
@@ -42,7 +45,11 @@ def analyze():
                 tmp_file.write(file_data)
                 tmp_file.flush()
                 sys.argv.append(tmp_file.name)
-            html_content = main()
+            main()
+
+            # Reading the generated HTML file
+            with open("html/rest_report.html", "r", encoding="utf-8") as file:
+                html_content = file.read()
 
         return Response(html_content, mimetype='text/html')
 
@@ -51,6 +58,6 @@ def analyze():
         return {"error": str(e)}, 500
 
 if __name__ == '__main__':
-    port = int(os.getenv("PORT", 53127))
+    port = int(sys.getenv("PORT", 53127))
     print(f">>> Flask server starting on port {port}")
     serve(app, host='0.0.0.0', port=port)
