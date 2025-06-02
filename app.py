@@ -1,3 +1,4 @@
+import os
 import sys
 import traceback
 from flask import Flask, request, Response
@@ -58,6 +59,6 @@ def analyze():
         return {"error": str(e)}, 500
 
 if __name__ == '__main__':
-    port = int(sys.getenv("PORT", 53127))
+    port = int(os.getenv("PORT", 53127))
     print(f">>> Flask server starting on port {port}")
     serve(app, host='0.0.0.0', port=port)
