@@ -5,7 +5,6 @@ import traceback
 import uuid
 import tempfile
 import multiprocessing
-import json
 import warnings
 
 from flask import Flask, request, Response
@@ -21,7 +20,6 @@ app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
 
 CORS(app)
 
-# Oculta el warning del backend en memoria
 warnings.filterwarnings("ignore", message="Using the in-memory storage for tracking rate limits*")
 
 limiter = Limiter(
@@ -61,12 +59,9 @@ def analyze():
             if not file_data:
                 return {"error": "Empty input"}, 400
 
-            try:
-                json.loads(file_data)
-            except Exception:
-                return {"error": "Invalid JSON input"}, 400
-
-            with tempfile.NamedTemporaryFile(delete=False, mode='w+', suffix='.json', encoding='utf-8') as tmp_file:
+            # Detect extension from content (fallback: .yaml)
+            ext = ".yaml" if file_data.strip().startswith("openapi") or file_data.strip().startswith("swagger") else ".yaml"
+            with tempfile.NamedTemporaryFile(delete=False, mode='w+', suffix=ext, encoding='utf-8') as tmp_file:
                 tmp_file.write(file_data)
                 tmp_file.flush()
                 tmp_file_path = tmp_file.name
