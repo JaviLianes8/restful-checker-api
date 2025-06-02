@@ -12,7 +12,6 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from waitress import serve
 from datetime import datetime
-from urllib.parse import urlparse
 
 from restful_checker.engine.analyzer import analyze_api
 
@@ -52,7 +51,11 @@ def analyze():
         input_raw = request.data.decode('utf-8')
         ext = ".json"
 
-        body = request.get_json(silent=True)
+        try:
+            body = json.loads(input_raw)
+        except Exception:
+            body = None
+
         if isinstance(body, dict) and "url" in body:
             url = body["url"]
             if not url.endswith(('.json', '.yaml', '.yml')):
@@ -65,12 +68,17 @@ def analyze():
                 ext = ".yaml" if url.endswith(('.yaml', '.yml')) else ".json"
             except Exception as e:
                 return {"error": f"Failed to fetch URL: {str(e)}"}, 400
-
-        # Validate content is parseable
-        try:
-            _ = json.loads(input_raw) if ext == ".json" else yaml.safe_load(input_raw)
-        except Exception:
-            return {"error": f"Invalid content for extension {ext}"}, 400
+        else:
+            # Try to detect format
+            try:
+                json.loads(input_raw)
+                ext = ".json"
+            except Exception:
+                try:
+                    yaml.safe_load(input_raw)
+                    ext = ".yaml"
+                except Exception:
+                    return {"error": "Invalid JSON/YAML input"}, 400
 
         with tempfile.NamedTemporaryFile(delete=False, mode='w+', suffix=ext, encoding='utf-8') as f:
             f.write(input_raw)
