@@ -36,6 +36,10 @@ limiter = Limiter(get_remote_address, app=app, default_limits=["5 per minute", "
 
 @app.route('/analyze', methods=['POST', 'OPTIONS'])
 def analyze():
+
+    if request.method == 'OPTIONS':
+        return Response(status=200)
+
     print(f"[{datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] Received /analyze request from {request.remote_addr} | User-Agent: {request.headers.get('User-Agent')}")
 
     try:
