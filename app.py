@@ -12,7 +12,6 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from waitress import serve
 from datetime import datetime
-from urllib.parse import urlparse
 
 from restful_checker.engine.analyzer import analyze_api
 
@@ -23,19 +22,16 @@ app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
 # CORS(app, resources={
 #     r"/analyze": {
 #         "origins": [
-#             "https://restful-checker-website.vercel.app",  # ✅ your deployed frontend
-#             "http://localhost:3000",                        # 🧪 local development
-#             "http://127.0.0.1:3000",                        # 🧪 local dev (loopback)
-#             "http://192.168.1.*"                            # 🧪 local network for friends/testing
+#             "https://restful-checker-website.vercel.app",
+#             "http://localhost:3000",
+#             "http://127.0.0.1:3000",
+#             "http://192.168.1.*"
 #         ]
 #     }
 # })
 
 # ⚠️ TEMPORARY DEBUG CONFIGURATION
-# Allow CORS from any origin — for testing purposes only
-# Do NOT use this in production environments
 CORS(app)
-
 limiter = Limiter(get_remote_address, app=app, default_limits=["5 per minute", "100 per day"])
 
 @app.route('/analyze', methods=['POST', 'OPTIONS'])
@@ -52,6 +48,7 @@ def analyze():
         input_raw = request.data.decode('utf-8')
         ext = ".json"
 
+        # Check if it's a JSON with a URL
         body = request.get_json(silent=True)
         if isinstance(body, dict) and "url" in body:
             url = body["url"]
@@ -66,11 +63,11 @@ def analyze():
             except Exception as e:
                 return {"error": f"Failed to fetch URL: {str(e)}"}, 400
 
-        # Validate that the content is a valid JSON or YAML object (dict)
+        # Validate that it's a dict
         try:
             parsed = json.loads(input_raw) if ext == ".json" else yaml.safe_load(input_raw)
             if not isinstance(parsed, dict):
-                return {"error": f"Invalid content: expected a JSON/YAML object (dict), got {type(parsed).__name__}"}, 400
+                return {"error": "Only JSON or YAML objects (dicts) are supported"}, 400
         except Exception:
             return {"error": f"Invalid content for extension {ext}"}, 400
 
