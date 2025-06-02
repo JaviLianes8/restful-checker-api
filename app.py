@@ -28,48 +28,27 @@ def analyze():
         if not request.data:
             return {"error": "No input provided"}, 400
 
-        output_folder = "html"
-        os.makedirs(output_folder, exist_ok=True)
-
-        # Create a unique filename for the HTML report
-        unique_id = os.urandom(8).hex()
-        html_path = os.path.join(os.getcwd(), output_folder, f"rest_report_{unique_id}.html")
-
         body = request.get_json(silent=True)
-        temp_file = None
 
         if isinstance(body, dict) and "url" in body:
             url = body["url"]
-            # Adjust sys.argv for URL
-            sys.argv = ["restful-checker", url, "--output-format", "html", "--output-folder", output_folder]
+            sys.argv = ["restful-checker", url, "--output-format", "html"]
             main()
 
-            # Use the unique file name for the HTML report
-            html_path = os.path.join(output_folder, f"rest_report_{unique_id}.html")
-            with open(html_path, "r", encoding="utf-8") as file:
+            with open("html/rest_report.html", "r", encoding="utf-8") as file:
                 html_content = file.read()
 
         else:
             file_data = request.data.decode('utf-8')
-            suffix = '.json' if file_data.strip().startswith('{') else '.yaml'
-            temp_file = tempfile.NamedTemporaryFile(delete=False, mode='w+', suffix=suffix, encoding='utf-8')
-            temp_file.write(file_data)
-            temp_file.flush()
-            # Adjust sys.argv for file
-            sys.argv = ["restful-checker", temp_file.name, "--output-format", "html", "--output-folder", output_folder]
+            sys.argv = ["restful-checker", "--output-format", "html", "--output-folder", "html"]
+            with tempfile.NamedTemporaryFile(delete=False, mode='w+', suffix='.json', encoding='utf-8') as tmp_file:
+                tmp_file.write(file_data)
+                tmp_file.flush()
+                sys.argv.append(tmp_file.name)
             main()
 
-            html_path = os.path.join(output_folder, f"rest_report_{unique_id}.html")
-            with open(html_path, "r", encoding="utf-8") as file:
+            with open("html/rest_report.html", "r", encoding="utf-8") as file:
                 html_content = file.read()
-
-        # Clean up the generated files
-        if temp_file:
-            os.unlink(temp_file.name)
-
-        # Don't delete the HTML file right away; it has been returned in the response
-        # Clean up HTML file after it is served (if needed)
-        # os.unlink(html_path)
 
         return Response(html_content, mimetype='text/html')
 
