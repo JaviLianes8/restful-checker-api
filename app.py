@@ -64,6 +64,9 @@ def analyze():
             return {"error": "Timeout: analysis took too long"}, 504
 
         html_path = os.path.join(output_dir, "rest_report.html")
+        if not os.path.exists(html_path):
+            return {"error": "Invalid input or OpenAPI file could not be analyzed."}, 400
+
         with open(html_path, "r", encoding="utf-8") as file:
             html_content = file.read()
 
