@@ -1,6 +1,8 @@
 import os
 import sys
 import traceback
+import uuid
+
 from flask import Flask, request, Response
 from flask_cors import CORS
 from flask_limiter import Limiter
@@ -30,27 +32,35 @@ def analyze():
 
         body = request.get_json(silent=True)
 
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        output_dir = os.path.join(base_dir, "temp", str(uuid.uuid4()))
+        os.makedirs(output_dir, exist_ok=True)
+
         if isinstance(body, dict) and "url" in body:
             url = body["url"]
-            sys.argv = ["restful-checker", url, "--output-format", "html"]
+            sys.argv = ["restful-checker", url, "--output-format", output_dir]
             main()
 
-            with open("html/rest_report.html", "r", encoding="utf-8") as file:
+            with open(os.path.join(output_dir, "rest_report.html"), "r", encoding="utf-8") as file:
                 html_content = file.read()
+
+            return Response(html_content, mimetype='text/html')
 
         else:
             file_data = request.data.decode('utf-8')
-            sys.argv = ["restful-checker", "--output-format", "html", "--output-folder", "html"]
+            sys.argv = ["restful-checker", "--output-format", "html", "--output-folder", output_dir]
             with tempfile.NamedTemporaryFile(delete=False, mode='w+', suffix='.json', encoding='utf-8') as tmp_file:
                 tmp_file.write(file_data)
                 tmp_file.flush()
                 sys.argv.append(tmp_file.name)
             main()
 
-            with open("html/rest_report.html", "r", encoding="utf-8") as file:
+            with open(os.path.join(output_dir, "rest_report.html"), "r", encoding="utf-8") as file:
                 html_content = file.read()
 
-        return Response(html_content, mimetype='text/html')
+            response = Response(html_content, mimetype='text/html')
+            os.remove(tmp_file.name)
+            return response
 
     except Exception as e:
         traceback.print_exc()
