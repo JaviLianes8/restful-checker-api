@@ -3,6 +3,7 @@ import traceback
 import tempfile
 import os
 import json
+import yaml
 import requests
 
 from flask import Flask, request, Response
@@ -16,6 +17,7 @@ from restful_checker.engine.analyzer import analyze_api
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
+
 # 🔒 Allow CORS from both Vercel and local development environments
 # CORS(app, resources={
 #     r"/analyze": {
@@ -32,14 +34,18 @@ app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
 # Allow CORS from any origin — for testing purposes only
 # Do NOT use this in production environments
 CORS(app)
+
 limiter = Limiter(get_remote_address, app=app, default_limits=["5 per minute", "100 per day"])
 
-@app.route('/analyze', methods=['POST', 'OPTIONS'])
+def is_valid_openapi(text: str, ext: str):
+    try:
+        data = json.loads(text) if ext == ".json" else yaml.safe_load(text)
+        return "openapi" in data or "swagger" in data
+    except Exception:
+        return False
+
+@app.route('/analyze', methods=['POST'])
 def analyze():
-
-    if request.method == 'OPTIONS':
-        return Response(status=200)
-
     print(f"[{datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] Received /analyze request from {request.remote_addr} | User-Agent: {request.headers.get('User-Agent')}")
 
     try:
@@ -47,23 +53,30 @@ def analyze():
             return {"error": "No input provided"}, 400
 
         json_input = None
+        ext = ".json"
 
+        # Case 1: { "url": "https://..." }
         body = request.get_json(silent=True)
         if isinstance(body, dict) and "url" in body:
+            url = body["url"]
+            ext = ".yaml" if url.endswith((".yaml", ".yml")) else ".json"
             try:
-                response = requests.get(body["url"], timeout=10)
+                response = requests.get(url, timeout=10)
                 response.raise_for_status()
                 json_input = response.text
             except Exception as e:
                 return {"error": f"Failed to fetch URL: {str(e)}"}, 400
         else:
-            try:
-                parsed = json.loads(request.data.decode('utf-8'))
-                json_input = json.dumps(parsed)
-            except json.JSONDecodeError:
-                return {"error": "Invalid JSON"}, 400
+            json_input = request.data.decode('utf-8')
+            if json_input.lstrip().startswith("{"):
+                ext = ".json"
+            else:
+                ext = ".yaml"
 
-        with tempfile.NamedTemporaryFile(delete=False, mode='w+', suffix='.json', encoding='utf-8') as f:
+        if not is_valid_openapi(json_input, ext):
+            return {"error": "Invalid or unsupported OpenAPI format"}, 400
+
+        with tempfile.NamedTemporaryFile(delete=False, mode='w+', suffix=ext, encoding='utf-8') as f:
             f.write(json_input)
             f.flush()
             input_path = f.name
