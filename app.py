@@ -33,7 +33,7 @@ def analyze():
 
         # Create a unique filename for the HTML report
         unique_id = os.urandom(8).hex()
-        html_path = os.path.join(output_folder, f"rest_report_{unique_id}.html")
+        html_path = os.path.join(os.getcwd(), output_folder, f"rest_report_{unique_id}.html")
 
         body = request.get_json(silent=True)
         temp_file = None
