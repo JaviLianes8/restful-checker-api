@@ -31,6 +31,7 @@ def analyze():
         output_folder = "html"
         os.makedirs(output_folder, exist_ok=True)
 
+        # Create a unique filename for the HTML report
         unique_id = os.urandom(8).hex()
         html_path = os.path.join(output_folder, f"rest_report_{unique_id}.html")
 
@@ -52,9 +53,12 @@ def analyze():
 
         if not os.path.exists(html_path):
             raise FileNotFoundError(f"HTML report not found at {html_path}")
+
+        # Read the HTML file content
         with open(html_path, "r", encoding="utf-8") as file:
             html_content = file.read()
 
+        # Clean up the temporary files
         if temp_file:
             os.unlink(temp_file.name)
         if os.path.exists(html_path):
