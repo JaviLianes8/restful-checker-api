@@ -9,6 +9,8 @@ from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from waitress import serve
+from flask import Flask, request
+from datetime import datetime
 
 from restful_checker.engine.analyzer import analyze_api
 
@@ -18,20 +20,29 @@ app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
 
 # 🔒 Allow CORS from both Vercel and local development environments
-CORS(app, resources={r"/analyze": {"origins": [
-    "https://restful-checker-website.vercel.app",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://192.168.1.*"
-]}})
+# CORS(app, resources={
+#     r"/analyze": {
+#         "origins": [
+#             "https://restful-checker-website.vercel.app",  # ✅ your deployed frontend
+#             "http://localhost:3000",                        # 🧪 local development
+#             "http://127.0.0.1:3000",                        # 🧪 local dev (loopback)
+#             "http://192.168.1.*"                            # 🧪 local network for friends/testing
+#         ]
+#     }
+# })
+
+# ⚠️ TEMPORARY DEBUG CONFIGURATION
+# Allow CORS from any origin — for testing purposes only
+# Do NOT use this in production environments
+CORS(app)
 
 # 🔒 Rate limiting to prevent abuse
 limiter = Limiter(get_remote_address, app=app, default_limits=["5 per minute", "100 per day"])
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
-    print("[DEBUG] /analyze endpoint hit")
-    print(f"[DEBUG] Python path: {sys.executable}")
+
+    print(f"[{datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] Received /analyze request from {request.remote_addr} | User-Agent: {request.headers.get('User-Agent')}")
 
     try:
         if not request.data:
