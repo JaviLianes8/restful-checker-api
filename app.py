@@ -5,6 +5,8 @@ import traceback
 import uuid
 import tempfile
 import multiprocessing
+import json
+import warnings
 
 from flask import Flask, request, Response
 from flask_cors import CORS
@@ -18,7 +20,15 @@ app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
 
 CORS(app)
-limiter = Limiter(get_remote_address, app=app, default_limits=["5 per minute", "100 per day"])
+
+# Oculta el warning del backend en memoria
+warnings.filterwarnings("ignore", message="Using the in-memory storage for tracking rate limits*")
+
+limiter = Limiter(
+    key_func=get_remote_address,
+    app=app,
+    default_limits=["5 per minute", "100 per day"]
+)
 
 def run_checker(input_arg, output_dir):
     sys.argv = ["restful-checker", input_arg, "--output-format", "html", "--output-folder", output_dir]
@@ -47,7 +57,15 @@ def analyze():
         if isinstance(body, dict) and "url" in body:
             input_arg = body["url"]
         else:
-            file_data = request.data.decode('utf-8')
+            file_data = request.get_data(as_text=True).strip()
+            if not file_data:
+                return {"error": "Empty input"}, 400
+
+            try:
+                json.loads(file_data)
+            except Exception:
+                return {"error": "Invalid JSON input"}, 400
+
             with tempfile.NamedTemporaryFile(delete=False, mode='w+', suffix='.json', encoding='utf-8') as tmp_file:
                 tmp_file.write(file_data)
                 tmp_file.flush()
