@@ -1,4 +1,5 @@
 import os
+import shutil
 import sys
 import traceback
 import uuid
@@ -26,6 +27,9 @@ def analyze():
 
     print(f"[{datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] Received /analyze request from {request.remote_addr} | User-Agent: {request.headers.get('User-Agent')}")
 
+    tmp_file_path = None
+    output_dir = None
+
     try:
         if not request.data:
             return {"error": "No input provided"}, 400
@@ -37,34 +41,33 @@ def analyze():
         os.makedirs(output_dir, exist_ok=True)
 
         if isinstance(body, dict) and "url" in body:
-            url = body["url"]
-            sys.argv = ["restful-checker", url, "--output-format", output_dir]
-            main()
-
-            with open(os.path.join(output_dir, "rest_report.html"), "r", encoding="utf-8") as file:
-                html_content = file.read()
-
-            return Response(html_content, mimetype='text/html')
-
+            input_arg = body["url"]
         else:
             file_data = request.data.decode('utf-8')
-            sys.argv = ["restful-checker", "--output-format", "html", "--output-folder", output_dir]
             with tempfile.NamedTemporaryFile(delete=False, mode='w+', suffix='.json', encoding='utf-8') as tmp_file:
                 tmp_file.write(file_data)
                 tmp_file.flush()
-                sys.argv.append(tmp_file.name)
-            main()
+                tmp_file_path = tmp_file.name
+                input_arg = tmp_file_path
 
-            with open(os.path.join(output_dir, "rest_report.html"), "r", encoding="utf-8") as file:
-                html_content = file.read()
+        sys.argv = ["restful-checker", input_arg, "--output-format", "html", "--output-folder", output_dir]
+        main()
 
-            response = Response(html_content, mimetype='text/html')
-            os.remove(tmp_file.name)
-            return response
+        html_path = os.path.join(output_dir, "rest_report.html")
+        with open(html_path, "r", encoding="utf-8") as file:
+            html_content = file.read()
+
+        return Response(html_content, mimetype='text/html')
 
     except Exception as e:
         traceback.print_exc()
         return {"error": str(e)}, 500
+
+    finally:
+        if tmp_file_path and os.path.exists(tmp_file_path):
+            os.remove(tmp_file_path)
+        if output_dir and os.path.exists(output_dir):
+            shutil.rmtree(output_dir)
 
 if __name__ == '__main__':
     port = int(os.getenv("PORT", 53127))
