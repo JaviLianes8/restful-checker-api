@@ -20,6 +20,10 @@ app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
 CORS(app)
 limiter = Limiter(get_remote_address, app=app, default_limits=["5 per minute", "100 per day"])
 
+def run_checker(input_arg, output_dir):
+    sys.argv = ["restful-checker", input_arg, "--output-format", "html", "--output-folder", output_dir]
+    main()
+
 @app.route('/analyze', methods=['POST', 'OPTIONS'])
 def analyze():
     if request.method == 'OPTIONS':
@@ -50,11 +54,7 @@ def analyze():
                 tmp_file_path = tmp_file.name
                 input_arg = tmp_file_path
 
-        def run_checker():
-            sys.argv = ["restful-checker", input_arg, "--output-format", "html", "--output-folder", output_dir]
-            main()
-
-        p = multiprocessing.Process(target=run_checker)
+        p = multiprocessing.Process(target=run_checker, args=(input_arg, output_dir))
         p.start()
         p.join(timeout=10)
 
@@ -80,6 +80,7 @@ def analyze():
             shutil.rmtree(output_dir)
 
 if __name__ == '__main__':
+    multiprocessing.freeze_support()
     port = int(os.getenv("PORT", 53127))
     print(f">>> Flask server starting on port {port}")
     serve(app, host='0.0.0.0', port=port)
