@@ -18,7 +18,7 @@ pip install -r requirements.txt
 python app.py
 ```
 
-It will start on `http://localhost:10000`
+It will start on `http://localhost:53127`
 
 ---
 
@@ -40,14 +40,14 @@ Submits an OpenAPI/Swagger spec (JSON or YAML), local or remote, and returns an 
 
 📄 Local file (JSON or YAML):
 ```bash
-curl -X POST http://localhost:10000/analyze \
+curl -X POST http://localhost:53127/analyze \
      -H "Content-Type: application/json" \
      --data-binary @openapi.yaml
 ```
 
 🌐 Remote URL:
 ```bash
-curl -X POST http://localhost:10000/analyze \
+curl -X POST http://localhost:53127/analyze \
      -H "Content-Type: application/json" \
      -d '{"url":"https://petstore3.swagger.io/api/v3/openapi.yaml"}'
 ```
@@ -63,7 +63,7 @@ CORS is enabled using `flask-cors`, so this API can be safely consumed from fron
 
 ```python
 from flask_cors import CORS
-CORS("app")
+CORS(app)
 ```
 
 ---
